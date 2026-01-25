@@ -1,11 +1,3 @@
 .venv
-docgen\__pycache__
-__pycache__/
-*.pyc
-.DS_Store
-.vscode/
-.idea/
-dist/
-build/
-*.egg-info/
 .env
+__pycache__/
