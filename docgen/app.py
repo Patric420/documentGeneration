@@ -1,11 +1,6 @@
 from utils.file_utils import extract_text
 from classifier.classify import classify_document
-from generators.generate import build_prompt
 from schema import DOCUMENT_SCHEMAS
-from utils.pdf_writer import save_text_as_pdf
-from utils.retry import call_gemini_with_retry
-from google import genai
-from config import GEMINI_API_KEY, MODEL_NAME
 from utils.latex_writer import render_latex
 
 TEMPLATE_MAP = {

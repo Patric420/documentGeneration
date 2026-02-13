@@ -1,5 +1,7 @@
-google-generativeai
+google-genai
 PyMuPDF
 python-docx
 pytesseract
 Pillow
+python-dotenv
+reportlab
