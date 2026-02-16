@@ -156,9 +156,63 @@ All configuration values have sensible defaults and can be overridden via enviro
 
 ## Usage
 
-### CLI Interface
+### Interactive Mode (Recommended)
 
-The system provides a command-line interface with multiple options:
+The easiest way to generate documents is using interactive mode - just run the app and answer prompts:
+
+```bash
+cd docgen
+python app.py
+```
+
+The system will:
+1. Ask you for the input document path
+2. Extract and automatically classify the document
+3. Prompt for all required fields (with validation)
+4. Optionally ask for any additional fields
+5. Generate and save the PDF
+
+**Example session:**
+```
+============================================================
+Document Generation System - Interactive Mode
+============================================================
+
+Enter path to input document (PDF/DOCX/Image): sample.pdf
+
+Processing document...
+✓ Document classified as: Onboarding_Letter
+
+============================================================
+Document Type: Onboarding_Letter
+============================================================
+
+REQUIRED FIELDS:
+------------------------------------------------------------
+Enter Employee_Name: John Doe
+Enter Emp_ID: EMP001
+Enter Role: Senior Developer
+Enter Joining_Date: 2024-03-01
+Enter Document_Date: 2024-02-15
+
+OPTIONAL FIELDS:
+------------------------------------------------------------
+Enter Designation (leave blank to skip): 
+Enter Manager (leave blank to skip): Jane Smith
+
+Generating document...
+
+============================================================
+✓ SUCCESS
+============================================================
+Document Type: Onboarding_Letter
+Output File: output.pdf
+============================================================
+```
+
+### CLI Interface (Programmatic)
+
+For scripting and automation, use the `main.py` CLI interface:
 
 ```bash
 python main.py --input document.pdf --fields '{"Name": "John Doe", "Company": "ABC Corp"}'
@@ -205,6 +259,25 @@ user_inputs = {
 # Generate document
 doc_type, output_pdf = generate_document(file_path, user_inputs)
 print(f"Generated {doc_type} document: {output_pdf}")
+```
+
+### Interactive Input Helper Functions
+
+Use these functions to build interactive workflows:
+
+```python
+from app import get_input_file_interactively, get_user_inputs_interactive
+
+# Interactively get file path (with validation)
+file_path = get_input_file_interactively()
+
+# Interactively get user fields based on document type
+doc_type = "Onboarding_Letter"
+user_inputs = get_user_inputs_interactive(doc_type)
+
+# Then generate the document
+from app import generate_document
+doc_type, output_pdf = generate_document(file_path, user_inputs)
 ```
 
 ### Batch Processing
@@ -444,6 +517,56 @@ processor.save_batch_report("report.json")
 # Load batch from JSON
 batch_data = processor.load_batch_from_json("batch.json")
 ```
+
+### Interactive Input Functions (app.py)
+
+#### `get_input_file_interactively()` 
+Prompts user for input file path with file existence validation.
+
+**Returns:**
+- (str) Path to validated input file
+
+**Behavior:**
+- Loops until user provides a valid file path
+- Validates file exists on filesystem
+- Strips whitespace from input
+- Logs file selection
+
+**Example:**
+```python
+from app import get_input_file_interactively
+file_path = get_input_file_interactively()
+# Output: Enter path to input document (PDF/DOCX/Image): sample.pdf
+```
+
+---
+
+#### `get_user_inputs_interactive(doc_type)`
+Interactively prompts user for document-type-specific required and optional fields.
+
+**Parameters:**
+- `doc_type` (str) - Document type to collect fields for
+
+**Returns:**
+- (dict) Dictionary of field values provided by user
+
+**Behavior:**
+- Displays document type and field sections
+- Required fields: loops until value provided
+- Optional fields: allows skipping (enter blank)
+- Validates input against schema
+- Pretty-printed output with separators
+- Logs all user inputs
+
+**Example:**
+```python
+from app import get_user_inputs_interactive
+fields = get_user_inputs_interactive("Onboarding_Letter")
+# Prompts for: Employee_Name, Emp_ID, Role, Joining_Date, Document_Date
+# Optionally: Designation, Manager, etc.
+```
+
+---
 
 ### Core Functions
 
