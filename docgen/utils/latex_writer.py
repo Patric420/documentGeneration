@@ -2,6 +2,7 @@ import logging
 import subprocess
 import os
 from typing import Dict
+from exceptions import LatexCompilationError, TemplateNotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -42,8 +43,8 @@ def render_latex(template_path: str, output_tex: str, output_pdf: str, values: D
         values: Dictionary of field values to replace in template
         
     Raises:
-        FileNotFoundError: If template file not found
-        RuntimeError: If LaTeX compilation fails
+        TemplateNotFoundError: If template file not found
+        LatexCompilationError: If LaTeX compilation fails
     """
     logger.info(f"Rendering LaTeX template: {template_path}")
     
@@ -53,7 +54,7 @@ def render_latex(template_path: str, output_tex: str, output_pdf: str, values: D
         logger.debug(f"Loaded template ({len(tex)} characters)")
     except FileNotFoundError as e:
         logger.error(f"Template file not found: {template_path}")
-        raise
+        raise TemplateNotFoundError(f"Template file not found: {template_path}")
 
     # Replace template fields with sanitized user values
     for k, v in values.items():
@@ -81,7 +82,7 @@ def render_latex(template_path: str, output_tex: str, output_pdf: str, values: D
         logger.info(f"PDF successfully generated: {output_pdf}")
     except subprocess.CalledProcessError as e:
         logger.error(f"LaTeX compilation failed: {e.stderr}")
-        raise RuntimeError(f"LaTeX compilation failed: {str(e)}")
+        raise LatexCompilationError(f"LaTeX compilation failed: {e.stderr}")
     except FileNotFoundError:
         logger.error("pdflatex not found. Please install LaTeX distribution (e.g., MiKTeX, TeX Live)")
-        raise RuntimeError("pdflatex not found. Install LaTeX distribution.")
+        raise LatexCompilationError("pdflatex not found. Install LaTeX distribution (MiKTeX, TeX Live, MacTeX, etc.)")

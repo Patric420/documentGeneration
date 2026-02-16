@@ -2,6 +2,7 @@ import logging
 from google import genai
 from config import GEMINI_API_KEY, MODEL_NAME
 from utils.retry import call_gemini_with_retry
+from exceptions import UnsupportedDocumentTypeError, DocumentClassificationError
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,7 @@ def _normalize_doc_type(raw_text: str) -> str:
             return doc_type
 
     logger.error(f"Unsupported classification output: {candidate!r}")
-    raise ValueError(f"Unsupported classification output: {candidate!r}")
+    raise UnsupportedDocumentTypeError(f"Classification output '{candidate}' is not a valid document type. Supported types: {', '.join(ALLOWED_TYPES)}")
 
 def classify_document(text: str) -> str:
     """
@@ -63,6 +64,8 @@ Document:
         doc_type = _normalize_doc_type(response.text)
         logger.info(f"Document successfully classified as: {doc_type}")
         return doc_type
+    except UnsupportedDocumentTypeError:
+        raise
     except Exception as e:
         logger.error(f"Error during classification: {str(e)}", exc_info=True)
-        raise
+        raise DocumentClassificationError(f"Failed to classify document: {str(e)}")

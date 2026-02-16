@@ -1,6 +1,7 @@
 import logging
 import pytesseract
 from PIL import Image
+from exceptions import FileExtractionError
 
 logger = logging.getLogger(__name__)
 
@@ -11,6 +12,8 @@ def extract_image_text(path: str) -> str:
         text = pytesseract.image_to_string(Image.open(path))
         logger.debug(f"Successfully extracted {len(text)} characters from image")
         return text
+    except FileExtractionError:
+        raise
     except Exception as e:
         logger.error(f"Error extracting image text: {str(e)}", exc_info=True)
-        raise
+        raise FileExtractionError(f"Failed to extract text from image {path}: {str(e)}")

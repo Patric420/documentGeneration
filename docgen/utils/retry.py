@@ -1,5 +1,6 @@
 import logging
 import time
+from exceptions import APIRateLimitError, APIUnavailableError
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ def call_gemini_with_retry(client, model: str, prompt: str, retries: int = 5):
         API response
         
     Raises:
-        RuntimeError: If all retry attempts fail
+        APIUnavailableError: If all retry attempts fail
     """
     logger.info(f"Attempting Gemini API call with max {retries} retries")
     for i in range(retries):
@@ -39,4 +40,4 @@ def call_gemini_with_retry(client, model: str, prompt: str, retries: int = 5):
                 logger.error(f"Unrecoverable error during API call: {str(e)}")
                 raise e
     logger.error("Gemini API unavailable after all retry attempts")
-    raise RuntimeError("Gemini unavailable after retries")
+    raise APIUnavailableError("Gemini unavailable after retries")

@@ -4,6 +4,7 @@ from utils.file_utils import extract_text
 from classifier.classify import classify_document
 from schema import DOCUMENT_SCHEMAS
 from utils.latex_writer import render_latex
+from exceptions import TemplateNotFoundError, ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -14,10 +15,11 @@ TEMPLATE_MAP = {
 def validate_inputs(doc_type: str, user_inputs: Dict[str, str]) -> None:
     """Validate user inputs against document schema."""
     logger.info(f"Validating inputs for document type: {doc_type}")
+    from exceptions import MissingRequiredFieldError
     schema = DOCUMENT_SCHEMAS.get(doc_type)
     if not schema:
         logger.error(f"Unsupported document type: {doc_type}")
-        raise ValueError(f"Unsupported document type: {doc_type}")
+        raise ValidationError(f"Unsupported document type: {doc_type}")
 
     missing = [
         f for f in schema["required"]
@@ -25,7 +27,7 @@ def validate_inputs(doc_type: str, user_inputs: Dict[str, str]) -> None:
     ]
     if missing:
         logger.error(f"Missing required fields for {doc_type}: {missing}")
-        raise ValueError(f"Missing required fields: {missing}")
+        raise MissingRequiredFieldError(doc_type, missing)
     logger.debug(f"Input validation passed for {doc_type}")
 
 def generate_document(file_path: str, user_inputs: Dict[str, str]) -> Tuple[str, str]:
@@ -58,7 +60,7 @@ def generate_document(file_path: str, user_inputs: Dict[str, str]) -> Tuple[str,
         template_path = TEMPLATE_MAP.get(doc_type)
         if not template_path:
             logger.error(f"No template found for document type: {doc_type}")
-            raise ValueError(f"No template found for {doc_type}")
+            raise TemplateNotFoundError(f"No template found for document type: {doc_type}")
 
         output_tex = "output.tex"
         output_pdf = "output.pdf"

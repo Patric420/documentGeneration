@@ -1,0 +1,60 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, master, develop, feature/* ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r docgen/requirements.txt
+        pip install -r docgen/requirements-dev.txt
+
+    - name: Lint with flake8
+      run: |
+        flake8 docgen --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 docgen --count --exit-zero --max-complexity=10 --max-line-length=100 --statistics
+
+    - name: Type check with mypy
+      run: |
+        mypy docgen --ignore-missing-imports --no-error-summary || true
+
+    - name: Run tests with pytest
+      run: |
+        cd docgen
+        pytest test_suite.py -v --tb=short --cov=. --cov-report=xml --cov-report=html || true
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      if: always()
+      with:
+        file: ./docgen/coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+    - name: Archive test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results-${{ matrix.python-version }}
+        path: docgen/htmlcov/
+        retention-days: 30

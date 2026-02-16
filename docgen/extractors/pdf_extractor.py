@@ -1,5 +1,6 @@
 import logging
 import fitz
+from exceptions import FileExtractionError
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +13,8 @@ def extract_pdf_text(path: str) -> str:
         logger.debug(f"Successfully extracted {len(text)} characters from PDF")
         doc.close()
         return text
+    except FileExtractionError:
+        raise
     except Exception as e:
         logger.error(f"Error extracting PDF text: {str(e)}", exc_info=True)
-        raise
+        raise FileExtractionError(f"Failed to extract text from PDF {path}: {str(e)}")
