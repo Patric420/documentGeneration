@@ -136,3 +136,17 @@ profile_results/
 # Windows specific
 # ===============================
 $RECYCLE.BIN/
+
+sample.pdf
+output.pdf
+output.tex
+output.aux
+output.out
+output.toc
+output.lof
+output.lot
+generated_*.tex
+output_preview.png
+output_preview2.png
+output_preview3.png
+images/
