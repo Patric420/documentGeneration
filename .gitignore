@@ -16,12 +16,18 @@ env/
 # Environment Variables
 # ===============================
 .env
+.env.local
+.env.*.local
+config.local.json
 
 # ===============================
 # Logs & Runtime Artifacts
 # ===============================
 *.log
 output.log
+docgen.log
+*.log.bak
+logs/
 
 # ===============================
 # Generated Outputs (DO NOT COMMIT)
@@ -29,6 +35,9 @@ output.log
 output.pdf
 output.tex
 output.aux
+output/
+sessions/
+batch_reports/
 *.aux
 *.out
 *.toc
@@ -39,6 +48,8 @@ output.aux
 # PDFs (generated)
 # ===============================
 sample.pdf
+*.pdf
+generated_*.tex
 
 # ===============================
 # Jupyter
@@ -66,3 +77,62 @@ htmlcov/
 build/
 dist/
 *.egg-info/
+
+# ===============================
+# Batch Processing
+# ===============================
+batch_jobs.json
+batch_report*.json
+batch_*.json
+
+# ===============================
+# Database / persistent storage
+# ===============================
+*.db
+*.sqlite
+*.sqlite3
+data/
+.database/
+
+# ===============================
+# Docker
+# ===============================
+.dockerignore
+docker-compose.override.yml
+
+# ===============================
+# Documentation
+# ===============================
+docs/_build/
+site/
+.sphinx/
+
+# ===============================
+# Performance Profiling
+# ===============================
+*.prof
+*.lprof
+profile_results/
+
+# ===============================
+# IDE / Editor specific files
+# ===============================
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+*.sublime-workspace
+*.sublime-project
+
+# ===============================
+# macOS specific
+# ===============================
+.AppleDouble
+.LSOverride
+._*
+
+# ===============================
+# Windows specific
+# ===============================
+$RECYCLE.BIN/
