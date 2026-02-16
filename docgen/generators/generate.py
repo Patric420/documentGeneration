@@ -1,6 +1,22 @@
+import logging
+from typing import Dict
 from schema import DOCUMENT_SCHEMAS
 
-def build_prompt(doc_type, extracted_text, user_inputs):
+logger = logging.getLogger(__name__)
+
+def build_prompt(doc_type: str, extracted_text: str, user_inputs: Dict[str, str]) -> str:
+    """
+    Build a prompt for document generation using Gemini AI.
+    
+    Args:
+        doc_type: Type of document to generate
+        extracted_text: Reference document text
+        user_inputs: User-provided field values
+        
+    Returns:
+        Formatted prompt for Gemini AI
+    """
+    logger.info(f"Building generation prompt for {doc_type}")
     fields = "\n".join(f"{k}: {v}" for k, v in user_inputs.items())
 
     return f"""

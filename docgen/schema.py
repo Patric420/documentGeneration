@@ -1,4 +1,6 @@
-DOCUMENT_SCHEMAS = {
+from typing import Dict, List
+
+DOCUMENT_SCHEMAS: Dict[str, Dict[str, List[str]]] = {
     "NDA": {
         "required": ["Name", "Company", "Date", "Term", "Jurisdiction"],
         "optional": ["Confidential_Info_Description", "Governing_Law"]
