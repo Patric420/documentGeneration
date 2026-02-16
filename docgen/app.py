@@ -1,5 +1,6 @@
 import logging
 from typing import Dict, Tuple
+import json
 from utils.file_utils import extract_text
 from classifier.classify import classify_document
 from schema import DOCUMENT_SCHEMAS
@@ -11,6 +12,75 @@ logger = logging.getLogger(__name__)
 TEMPLATE_MAP = {
     "Onboarding_Letter": "templates/onboarding_template.tex"
 }
+
+def get_user_inputs_interactive(doc_type: str) -> Dict[str, str]:
+    """
+    Interactively prompt user for fields required by document type.
+    
+    Args:
+        doc_type: Document type to get inputs for
+        
+    Returns:
+        Dictionary of field values provided by user
+    """
+    logger.info(f"Collecting user inputs for document type: {doc_type}")
+    schema = DOCUMENT_SCHEMAS.get(doc_type)
+    
+    if not schema:
+        logger.error(f"Unsupported document type: {doc_type}")
+        raise ValidationError(f"Unsupported document type: {doc_type}")
+    
+    user_inputs = {}
+    
+    print(f"\n{'='*60}")
+    print(f"Document Type: {doc_type}")
+    print(f"{'='*60}\n")
+    
+    # Collect required fields
+    print("REQUIRED FIELDS:")
+    print("-" * 60)
+    for field in schema.get("required", []):
+        while True:
+            value = input(f"Enter {field}: ").strip()
+            if value:
+                user_inputs[field] = value
+                logger.debug(f"User provided {field}: {value}")
+                break
+            else:
+                print(f"  ⚠️  {field} is required. Please enter a value.")
+    
+    # Collect optional fields
+    optional_fields = schema.get("optional", [])
+    if optional_fields:
+        print("\nOPTIONAL FIELDS:")
+        print("-" * 60)
+        for field in optional_fields:
+            value = input(f"Enter {field} (leave blank to skip): ").strip()
+            if value:
+                user_inputs[field] = value
+                logger.debug(f"User provided optional {field}: {value}")
+    
+    print()
+    return user_inputs
+
+def get_input_file_interactively() -> str:
+    """
+    Interactively prompt user for input file path.
+    
+    Returns:
+        Path to the input file
+    """
+    import os
+    while True:
+        file_path = input("Enter path to input document (PDF/DOCX/Image): ").strip()
+        if not file_path:
+            print("  ⚠️  File path cannot be empty.")
+            continue
+        if not os.path.exists(file_path):
+            print(f"  ⚠️  File not found: {file_path}")
+            continue
+        logger.debug(f"User provided file: {file_path}")
+        return file_path
 
 def validate_inputs(doc_type: str, user_inputs: Dict[str, str]) -> None:
     """Validate user inputs against document schema."""
@@ -82,16 +152,40 @@ def generate_document(file_path: str, user_inputs: Dict[str, str]) -> Tuple[str,
 
 
 if __name__ == "__main__":
-    file_path = "sample.pdf"
-
-    user_inputs = {
-        "Employee_Name": "Rahul Verma",
-        "Emp_ID": "T2L-AI-041",
-        "Role": "Software Engineer Intern",
-        "Joining_Date": "1 July 2026",
-        "Document_Date": "10 June 2026"
-    }
-
-    doc_type, pdf_path = generate_document(file_path, user_inputs)
-    print("Detected:", doc_type)
-    print("Saved as:", pdf_path)
+    import sys
+    
+    print("\n" + "="*60)
+    print("Document Generation System - Interactive Mode")
+    print("="*60)
+    
+    try:
+        # Get input file
+        file_path = get_input_file_interactively()
+        
+        # Extract and classify
+        print("\nProcessing document...")
+        extracted_text = extract_text(file_path)
+        doc_type = classify_document(extracted_text)
+        print(f"✓ Document classified as: {doc_type}")
+        
+        # Get user inputs
+        user_inputs = get_user_inputs_interactive(doc_type)
+        
+        # Generate document
+        print("Generating document...")
+        doc_type, pdf_path = generate_document(file_path, user_inputs)
+        
+        print("\n" + "="*60)
+        print("✓ SUCCESS")
+        print("="*60)
+        print(f"Document Type: {doc_type}")
+        print(f"Output File: {pdf_path}")
+        print("="*60 + "\n")
+        
+    except KeyboardInterrupt:
+        print("\n\n⚠️  Operation cancelled by user.")
+        sys.exit(1)
+    except Exception as e:
+        print(f"\n❌ Error: {str(e)}")
+        logger.error(f"Application error: {str(e)}", exc_info=True)
+        sys.exit(1)
