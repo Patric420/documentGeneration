@@ -6,9 +6,11 @@ AI-powered system that classifies documents with Google Gemini, validates fields
 
 - **Multi-format extraction** — PDF, DOCX, and images (PNG / JPG via Tesseract OCR)
 - **AI classification** — Gemini automatically detects the document type
+- **AI field extraction** — Gemini pre-populates form fields from the uploaded document
+- **Editable extracted text** — fix OCR errors or tweak content, then re-extract fields with one click
 - **Schema-driven validation** — required / optional fields enforced per type
 - **LaTeX templating** — branded output with injection-safe field substitution
-- **Streamlit dashboard** — upload, fill fields, preview the PDF, tweak and regenerate
+- **Streamlit dashboard** — upload, review, edit extracted text & fields, preview the PDF, tweak and regenerate
 - **Batch processing** — concurrent generation via `ThreadPoolExecutor`
 - **Retry & resilience** — exponential back-off on Gemini rate limits
 
@@ -57,10 +59,13 @@ streamlit run dashboard.py
 
 The dashboard lets you:
 1. **Upload** a reference document (PDF / DOCX / image)
-2. **Review** the AI-detected type and fill in fields
-3. **Preview** the generated PDF inline
-4. **Edit** any field and click **Regenerate** to update the preview instantly
-5. **Download** the final PDF
+2. **Review** the AI-detected type and auto-populated fields
+3. **Edit extracted text** — fix OCR mistakes or adjust content in the expandable text area
+4. **Re-extract fields** — click **🔄 Re-extract fields from text** to update all form fields from the edited text
+5. **Fine-tune fields** — manually adjust any individual field value
+6. **Preview** the generated PDF inline
+7. **Regenerate** — edit any field or text and click **Regenerate with Changes** to update the PDF
+8. **Download** the final PDF
 
 ### CLI Usage
 
@@ -83,6 +88,7 @@ python main.py -i sample.pdf -f fields.json -v
 ```python
 from app import generate_document
 
+# Basic usage — text is extracted and classified automatically
 doc_type, pdf_path = generate_document("sample.pdf", {
     "Employee_Name": "Jane Doe",
     "Emp_ID": "E01",
@@ -90,6 +96,14 @@ doc_type, pdf_path = generate_document("sample.pdf", {
     "Joining_Date": "2026-03-01",
     "Document_Date": "2026-02-19",
 })
+
+# With pre-extracted (or user-edited) text and known doc type
+doc_type, pdf_path = generate_document(
+    "sample.pdf",
+    {"Employee_Name": "Jane Doe", "Emp_ID": "E01", ...},
+    extracted_text="edited text content...",
+    doc_type="Onboarding_Letter",
+)
 ```
 
 ### Batch Processing
@@ -117,7 +131,7 @@ docgen/
 ├── batch_processor.py        # Concurrent batch runner
 ├── test_suite.py             # Unit tests
 ├── classifier/
-│   └── classify.py           # Gemini-based document classification
+│   └── classify.py           # Gemini-based classification + field extraction
 ├── extractors/
 │   ├── pdf_extractor.py      # PyMuPDF
 │   ├── docx_extractor.py     # python-docx
