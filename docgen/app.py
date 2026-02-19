@@ -99,28 +99,43 @@ def validate_inputs(doc_type: str, user_inputs: Dict[str, str]) -> None:
         raise MissingRequiredFieldError(doc_type, missing)
     logger.debug(f"Input validation passed for {doc_type}")
 
-def generate_document(file_path: str, user_inputs: Dict[str, str]) -> Tuple[str, str]:
+def generate_document(
+    file_path: str,
+    user_inputs: Dict[str, str],
+    extracted_text: str | None = None,
+    doc_type: str | None = None,
+) -> Tuple[str, str]:
     """
     Generate a document from a template based on extracted and classified input.
     
     Args:
         file_path: Path to input document (PDF, DOCX, or image)
         user_inputs: Dictionary of field values for template population
+        extracted_text: Pre-extracted (and possibly user-edited) text.
+            If *None*, the text is extracted from *file_path*.
+        doc_type: Pre-determined document type.
+            If *None*, the type is classified from the extracted text.
         
     Returns:
         Tuple of (document_type, output_pdf_path)
     """
     logger.info(f"Starting document generation from file: {file_path}")
     try:
-        # Extract text only for classification
-        logger.debug("Extracting text from input document")
-        extracted_text = extract_text(file_path)
-        logger.debug(f"Extracted {len(extracted_text)} characters")
+        # Extract text only for classification (skip if already provided)
+        if extracted_text is None:
+            logger.debug("Extracting text from input document")
+            extracted_text = extract_text(file_path)
+            logger.debug(f"Extracted {len(extracted_text)} characters")
+        else:
+            logger.debug(f"Using provided extracted text ({len(extracted_text)} characters)")
 
-        # Detect document type
-        logger.info("Classifying document using Gemini AI")
-        doc_type = classify_document(extracted_text)
-        logger.info(f"Document classified as: {doc_type}")
+        # Detect document type (skip if already provided)
+        if doc_type is None:
+            logger.info("Classifying document using Gemini AI")
+            doc_type = classify_document(extracted_text)
+            logger.info(f"Document classified as: {doc_type}")
+        else:
+            logger.info(f"Using provided document type: {doc_type}")
 
         # Validate inputs
         validate_inputs(doc_type, user_inputs)

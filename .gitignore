@@ -35,6 +35,10 @@ logs/
 output.pdf
 output.tex
 output.aux
+output_*.tex
+output_*.pdf
+output_*.aux
+sample_generated.*
 output/
 sessions/
 batch_reports/

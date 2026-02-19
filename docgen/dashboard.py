@@ -15,7 +15,7 @@ from pathlib import Path
 import streamlit as st
 
 from utils.file_utils import extract_text
-from classifier.classify import classify_document
+from classifier.classify import classify_document, extract_fields
 from schema import DOCUMENT_SCHEMAS
 from app import generate_document, validate_inputs, TEMPLATE_MAP
 from exceptions import (
@@ -117,6 +117,16 @@ if uploaded_file and st.session_state.stage == "upload":
             st.error(f"Classification failed: {e}")
             st.stop()
 
+    # Auto-populate form fields from the extracted text
+    with st.spinner("Extracting field values from text…"):
+        schema = DOCUMENT_SCHEMAS.get(st.session_state.doc_type, {})
+        all_fields = schema.get("required", []) + schema.get("optional", [])
+        st.session_state.user_inputs = extract_fields(
+            st.session_state.extracted_text,
+            st.session_state.doc_type,
+            all_fields,
+        )
+
     st.session_state.stage = "fields"
     st.rerun()
 
@@ -138,8 +148,29 @@ if st.session_state.stage in ("fields", "done"):
             st.warning("No template yet for this type. Generation will fail until a template is added.")
 
     with col_preview:
-        with st.expander("Preview extracted text", expanded=False):
-            st.text(st.session_state.extracted_text[:3000])
+        with st.expander("Preview / edit extracted text", expanded=False):
+            edited_text = st.text_area(
+                "Extracted text",
+                value=st.session_state.extracted_text,
+                height=300,
+                key="extracted_text_editor",
+                help="Edit the extracted text to fix OCR errors or adjust content, then click Re-extract to update the fields.",
+            )
+            if edited_text != st.session_state.extracted_text:
+                st.session_state.extracted_text = edited_text
+
+            if st.button("🔄  Re-extract fields from text", use_container_width=True):
+                with st.spinner("Re-extracting field values…"):
+                    all_fields = (
+                        DOCUMENT_SCHEMAS.get(doc_type, {}).get("required", [])
+                        + DOCUMENT_SCHEMAS.get(doc_type, {}).get("optional", [])
+                    )
+                    st.session_state.user_inputs = extract_fields(
+                        st.session_state.extracted_text,
+                        doc_type,
+                        all_fields,
+                    )
+                st.rerun()
 
     # ---- Build the editable field form (always visible) ----
     schema = DOCUMENT_SCHEMAS.get(doc_type, {"required": [], "optional": []})
@@ -191,7 +222,12 @@ if st.session_state.stage in ("fields", "done"):
 
         with st.spinner("Generating PDF…"):
             try:
-                _, output_pdf = generate_document(st.session_state.tmp_path, clean_inputs)
+                _, output_pdf = generate_document(
+                    st.session_state.tmp_path,
+                    clean_inputs,
+                    extracted_text=st.session_state.extracted_text,
+                    doc_type=st.session_state.doc_type,
+                )
                 st.session_state.output_pdf = output_pdf
                 st.session_state.output_tex = output_pdf.rsplit(".", 1)[0] + ".tex"
                 st.session_state.user_inputs = clean_inputs

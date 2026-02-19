@@ -34,6 +34,54 @@ def _normalize_doc_type(raw_text: str) -> str:
     logger.error(f"Unsupported classification output: {candidate!r}")
     raise UnsupportedDocumentTypeError(f"Classification output '{candidate}' is not a valid document type. Supported types: {', '.join(ALLOWED_TYPES)}")
 
+def extract_fields(text: str, doc_type: str, fields: list[str]) -> dict[str, str]:
+    """
+    Use Gemini AI to extract field values from document text.
+
+    Args:
+        text: The (possibly user-edited) extracted text.
+        doc_type: The document type (used for context in the prompt).
+        fields: List of field names to extract.
+
+    Returns:
+        Dictionary mapping field names to extracted values (empty string if
+        a field could not be found).
+    """
+    import json as _json
+
+    if not fields:
+        return {}
+
+    logger.info(f"Extracting {len(fields)} fields for {doc_type} via Gemini")
+    fields_list = ", ".join(fields)
+    prompt = (
+        f"You are a precise data-extraction assistant.\n"
+        f"Document type: {doc_type}\n\n"
+        f"Extract the following fields from the document text below:\n"
+        f"{fields_list}\n\n"
+        f"Return ONLY a valid JSON object mapping each field name to its "
+        f"extracted value (use an empty string if the value is not found).\n"
+        f"Do NOT include any explanation or markdown fencing.\n\n"
+        f"Document text:\n{text[:4000]}"
+    )
+
+    try:
+        response = call_gemini_with_retry(client, MODEL_NAME, prompt)
+        raw = response.text.strip()
+        # Strip markdown code fences if the model wraps the JSON
+        if raw.startswith("```"):
+            raw = raw.split("\n", 1)[1]  # drop opening fence line
+            raw = raw.rsplit("```", 1)[0]  # drop closing fence
+        extracted: dict = _json.loads(raw)
+        # Keep only requested fields and ensure strings
+        result = {f: str(extracted.get(f, "")) for f in fields}
+        logger.info(f"Extracted fields: {list(result.keys())}")
+        return result
+    except Exception as e:
+        logger.warning(f"Field extraction failed, returning empty values: {e}")
+        return {f: "" for f in fields}
+
+
 def classify_document(text: str) -> str:
     """
     Classify a document using Google Gemini AI.
