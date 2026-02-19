@@ -9,7 +9,7 @@ from typing import List, Dict, Optional, Tuple, Callable
 from dataclasses import dataclass, asdict
 from datetime import datetime
 import concurrent.futures
-from threading import Lock
+from threading import RLock
 
 from app import generate_document
 from utils.output_manager import OutputManager
@@ -59,7 +59,7 @@ class BatchProcessor:
         self.max_workers = max_workers
         self.output_manager = output_manager or OutputManager()
         self.jobs: Dict[str, BatchJob] = {}
-        self.jobs_lock = Lock()
+        self.jobs_lock = RLock()
         self.session_dir = self.output_manager.get_session_dir()
         logger.info(f"Batch processor initialized with {max_workers} workers")
     

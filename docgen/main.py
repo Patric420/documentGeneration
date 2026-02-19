@@ -152,6 +152,7 @@ def list_document_types() -> None:
 
 def main() -> int:
     """Main CLI entry point."""
+    args = None
     try:
         args = parse_arguments()
         
@@ -209,7 +210,7 @@ def main() -> int:
         logger.error(f"Unexpected error: {str(e)}", exc_info=True)
         print(f"\nError: {str(e)}", file=sys.stderr)
         
-        if args.verbose:
+        if args and not args.verbose:
             print("\nRun with --verbose to see full error details")
         
         return 1

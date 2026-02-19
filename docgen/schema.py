@@ -26,12 +26,12 @@ DOCUMENT_SCHEMAS: Dict[str, Dict[str, List[str]]] = {
     },
     "Onboarding_Letter": {
         "required": [
-        "Employee_Name",
-        "Emp_ID",
-        "Role",
-        "Joining_Date",
-        "Document_Date"
-    ],
-    "optional": []
-}
+            "Employee_Name",
+            "Emp_ID",
+            "Role",
+            "Joining_Date",
+            "Document_Date"
+        ],
+        "optional": []
+    }
 }

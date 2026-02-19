@@ -5,7 +5,7 @@ from utils.file_utils import extract_text
 from classifier.classify import classify_document
 from schema import DOCUMENT_SCHEMAS
 from utils.latex_writer import render_latex
-from exceptions import TemplateNotFoundError, ValidationError
+from exceptions import TemplateNotFoundError, ValidationError, MissingRequiredFieldError
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +85,6 @@ def get_input_file_interactively() -> str:
 def validate_inputs(doc_type: str, user_inputs: Dict[str, str]) -> None:
     """Validate user inputs against document schema."""
     logger.info(f"Validating inputs for document type: {doc_type}")
-    from exceptions import MissingRequiredFieldError
     schema = DOCUMENT_SCHEMAS.get(doc_type)
     if not schema:
         logger.error(f"Unsupported document type: {doc_type}")
@@ -132,8 +131,10 @@ def generate_document(file_path: str, user_inputs: Dict[str, str]) -> Tuple[str,
             logger.error(f"No template found for document type: {doc_type}")
             raise TemplateNotFoundError(f"No template found for document type: {doc_type}")
 
-        output_tex = "output.tex"
-        output_pdf = "output.pdf"
+        import uuid
+        unique_id = uuid.uuid4().hex[:8]
+        output_tex = f"output_{unique_id}.tex"
+        output_pdf = f"output_{unique_id}.pdf"
 
         logger.info(f"Rendering LaTeX template: {template_path}")
         # Render PDF via LaTeX

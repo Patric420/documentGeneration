@@ -1,5 +1,4 @@
 import logging
-from typing import List
 from extractors.pdf_extractor import extract_pdf_text
 from extractors.docx_extractor import extract_docx_text
 from extractors.image_extractor import extract_image_text
@@ -18,14 +17,15 @@ def extract_text(path: str) -> str:
         FileExtractionError: If extraction fails
     """
     logger.info(f"Processing file: {path}")
+    ext = path.lower().rsplit('.', 1)[-1] if '.' in path else ''
     try:
-        if path.endswith(".pdf"):
+        if ext == "pdf":
             logger.debug("File type: PDF")
             return extract_pdf_text(path)
-        elif path.endswith(".docx"):
+        elif ext == "docx":
             logger.debug("File type: DOCX")
             return extract_docx_text(path)
-        elif path.endswith((".png", ".jpg", ".jpeg")):
+        elif ext in ("png", "jpg", "jpeg"):
             logger.debug(f"File type: Image")
             return extract_image_text(path)
         else:

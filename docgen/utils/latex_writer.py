@@ -11,26 +11,28 @@ def _sanitize_latex(text: str) -> str:
     if not text:
         return text
     
-    # Escape special LaTeX characters
-    replacements = {
+    # Escape special LaTeX characters using character-by-character replacement
+    # to avoid corrupting already-substituted sequences.
+    char_map = {
         '\\': r'\textbackslash{}',
+        '{': r'\{',
+        '}': r'\}',
         '$': r'\$',
         '%': r'\%',
         '&': r'\&',
         '#': r'\#',
         '_': r'\_',
-        '{': r'\{',
-        '}': r'\}',
         '~': r'\textasciitilde{}',
         '^': r'\textasciicircum{}',
     }
     
-    result = text
-    for char, escaped in replacements.items():
-        result = result.replace(char, escaped)
+    result = []
+    for ch in text:
+        result.append(char_map.get(ch, ch))
+    sanitized = ''.join(result)
     
-    logger.debug(f"Sanitized text (length: {len(text)} -> {len(result)})")
-    return result
+    logger.debug(f"Sanitized text (length: {len(text)} -> {len(sanitized)})")
+    return sanitized
 
 def render_latex(template_path: str, output_tex: str, output_pdf: str, values: Dict[str, str]) -> None:
     """
