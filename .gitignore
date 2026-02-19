@@ -47,6 +47,8 @@ batch_reports/
 *.toc
 *.lof
 *.lot
+*.tex
+!docgen/templates/*.tex
 
 # ===============================
 # PDFs (generated)
