@@ -34,27 +34,12 @@ def _sanitize_latex(text: str) -> str:
     logger.debug(f"Sanitized text (length: {len(text)} -> {len(sanitized)})")
     return sanitized
 
-def render_latex(template_path: str, output_tex: str, output_pdf: str, values: Dict[str, str]) -> None:
-    """
-    Render a LaTeX template with user values and generate a PDF.
-    
-    Args:
-        template_path: Path to LaTeX template file
-        output_tex: Output path for rendered LaTeX file
-        output_pdf: Output path for generated PDF
-        values: Dictionary of field values to replace in template
-        
-    Raises:
-        TemplateNotFoundError: If template file not found
-        LatexCompilationError: If LaTeX compilation fails
-    """
-    logger.info(f"Rendering LaTeX template: {template_path}")
-    
+def populate_template(template_path: str, values: Dict[str, str]) -> str:
+    """Load a LaTeX template and replace variables with sanitized values."""
     try:
         with open(template_path, "r", encoding="utf-8") as f:
             tex = f.read()
-        logger.debug(f"Loaded template ({len(tex)} characters)")
-    except FileNotFoundError as e:
+    except FileNotFoundError:
         logger.error(f"Template file not found: {template_path}")
         raise TemplateNotFoundError(f"Template file not found: {template_path}")
 
@@ -63,8 +48,11 @@ def render_latex(template_path: str, output_tex: str, output_pdf: str, values: D
         placeholder = f"{{{{{k}}}}}"
         sanitized_value = _sanitize_latex(str(v))
         tex = tex.replace(placeholder, sanitized_value)
-        logger.debug(f"Replaced field '{k}' in template")
+    
+    return tex
 
+def compile_latex(tex: str, output_tex: str, output_pdf: str) -> None:
+    """Save LaTeX content to a file and compile it to PDF."""
     try:
         with open(output_tex, "w", encoding="utf-8") as f:
             f.write(tex)
@@ -88,3 +76,21 @@ def render_latex(template_path: str, output_tex: str, output_pdf: str, values: D
     except FileNotFoundError:
         logger.error("pdflatex not found. Please install LaTeX distribution (e.g., MiKTeX, TeX Live)")
         raise LatexCompilationError("pdflatex not found. Install LaTeX distribution (MiKTeX, TeX Live, MacTeX, etc.)")
+
+def render_latex(template_path: str, output_tex: str, output_pdf: str, values: Dict[str, str]) -> None:
+    """
+    Render a LaTeX template with user values and generate a PDF.
+    
+    Args:
+        template_path: Path to LaTeX template file
+        output_tex: Output path for rendered LaTeX file
+        output_pdf: Output path for generated PDF
+        values: Dictionary of field values to replace in template
+        
+    Raises:
+        TemplateNotFoundError: If template file not found
+        LatexCompilationError: If LaTeX compilation fails
+    """
+    logger.info(f"Rendering LaTeX template: {template_path}")
+    tex = populate_template(template_path, values)
+    compile_latex(tex, output_tex, output_pdf)

@@ -2,8 +2,52 @@ from typing import Dict, List
 
 DOCUMENT_SCHEMAS: Dict[str, Dict[str, List[str]]] = {
     "NDA": {
-        "required": ["Name", "Company", "Date", "Term", "Jurisdiction"],
-        "optional": ["Confidential_Info_Description", "Governing_Law"]
+        "required": [
+            "Company_Name",
+            "Location",
+            "Effective_Date",
+            "Company_CIN",
+            "Company_Registered_Office",
+            "Managing_Director_Name",
+            "Managing_Director_DIN",
+            "Managing_Director_Aadhaar",
+            "Board_Resolution_Date",
+            "Contractor_Name",
+            "Contractor_Father_Name",
+            "Contractor_Address",
+            "Contractor_Aadhaar",
+            "ICA_Date",
+            "Term",
+            "Protection_Period",
+            "Jurisdiction"
+        ],
+        "optional": []
+    },
+    "Independent_Contractor_Agreement": {
+        "required": [
+            "Effective_Date",
+            "Location",
+            "Company_Name",
+            "Company_CIN",
+            "Company_Registered_Office",
+            "Managing_Director_Name",
+            "Managing_Director_DIN",
+            "Managing_Director_Aadhaar",
+            "Board_Resolution_Date",
+            "Contractor_Name",
+            "Contractor_Father_Name",
+            "Contractor_Address",
+            "Contractor_Aadhaar",
+            "Role",
+            "Duration",
+            "Notice_Period",
+            "Contractor_Fee",
+            "Confidentiality_Period",
+            "Non_Compete_Period",
+            "Non_Solicitation_Period",
+            "Jurisdiction"
+        ],
+        "optional": []
     },
     "Offer_Letter": {
         "required": ["Name", "Company", "Position", "Start_Date", "Salary"],

@@ -7,10 +7,11 @@ AI-powered system that classifies documents with Google Gemini, validates fields
 - **Multi-format extraction** — PDF, DOCX, and images (PNG / JPG via Tesseract OCR)
 - **AI classification** — Gemini automatically detects the document type
 - **AI field extraction** — Gemini pre-populates form fields from the uploaded document
+- **AI Personalization** — inject custom instructions to dynamically rewrite the generated document using Gemini
 - **Editable extracted text** — fix OCR errors or tweak content, then re-extract fields with one click
 - **Schema-driven validation** — required / optional fields enforced per type
 - **LaTeX templating** — branded output with injection-safe field substitution
-- **Streamlit dashboard** — upload, review, edit extracted text & fields, preview the PDF, tweak and regenerate
+- **Streamlit dashboard** — upload, review, edit extracted text & fields, personalize, preview the PDF, tweak and regenerate
 - **Batch processing** — concurrent generation via `ThreadPoolExecutor`
 - **Retry & resilience** — exponential back-off on Gemini rate limits
 
@@ -19,7 +20,8 @@ AI-powered system that classifies documents with Google Gemini, validates fields
 | Type | Required Fields | Template |
 |------|----------------|----------|
 | **Onboarding Letter** | Employee_Name, Emp_ID, Role, Joining_Date, Document_Date | ✅ |
-| **NDA** | Name, Company, Date, Term, Jurisdiction | 🔜 |
+| **NDA** | Company_Name, Location, Term, Protection_Period, Jurisdiction, etc. | ✅ |
+| **Independent Contractor Agreement** | Company_Name, Role, Duration, Contractor_Fee, Jurisdiction, etc. | ✅ |
 | **Offer Letter** | Name, Company, Position, Start_Date, Salary | 🔜 |
 | **Contract** | Client_Name, Company, Contract_Creation_Date, Service_Description, Payment_Amount, Start_Date, End_Date | 🔜 |
 | **MOU** | PartyA_Name, PartyB_Name, Date, Purpose, Term, Jurisdiction | 🔜 |
@@ -97,12 +99,13 @@ doc_type, pdf_path = generate_document("sample.pdf", {
     "Document_Date": "2026-02-19",
 })
 
-# With pre-extracted (or user-edited) text and known doc type
+# With pre-extracted (or user-edited) text and known doc type, plus AI personalization
 doc_type, pdf_path = generate_document(
     "sample.pdf",
     {"Employee_Name": "Jane Doe", "Emp_ID": "E01", ...},
     extracted_text="edited text content...",
     doc_type="Onboarding_Letter",
+    personalization_prompt="Make the tone extremely formal and highlight the confidentiality requirements."
 )
 ```
 
@@ -200,4 +203,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines and [DEPLOYMENT.md](D
 
 ---
 
-**Last updated:** February 19, 2026
+**Last updated:** March 15, 2026

@@ -67,6 +67,7 @@ _DEFAULTS = {
     "output_pdf": None,
     "output_tex": None,
     "user_inputs": {},       # last-used field values for re-editing
+    "personalization_prompt": "",
 }
 for key, val in _DEFAULTS.items():
     if key not in st.session_state:
@@ -205,6 +206,14 @@ if st.session_state.stage in ("fields", "done"):
                         key=f"opt_{field}",
                     )
 
+        st.markdown("**Personalization (AI)**")
+        personalization_prompt = st.text_area(
+            "Instructions for document generation",
+            value=st.session_state.get("personalization_prompt", ""),
+            help="E.g., 'Make the tone more aggressive', 'Add a clause about non-compete for 2 years'.",
+            key="personalization_prompt_input"
+        )
+        
         btn_label = "🚀  Generate Document" if st.session_state.stage == "fields" else "🔄  Regenerate with Changes"
         submitted = st.form_submit_button(btn_label, type="primary", use_container_width=True)
 
@@ -227,10 +236,12 @@ if st.session_state.stage in ("fields", "done"):
                     clean_inputs,
                     extracted_text=st.session_state.extracted_text,
                     doc_type=st.session_state.doc_type,
+                    personalization_prompt=personalization_prompt,
                 )
                 st.session_state.output_pdf = output_pdf
                 st.session_state.output_tex = output_pdf.rsplit(".", 1)[0] + ".tex"
                 st.session_state.user_inputs = clean_inputs
+                st.session_state.personalization_prompt = personalization_prompt
                 st.session_state.stage = "done"
                 st.rerun()
             except TemplateNotFoundError:

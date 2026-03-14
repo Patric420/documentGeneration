@@ -2,15 +2,17 @@ import logging
 from typing import Dict, Tuple
 import json
 from utils.file_utils import extract_text
-from classifier.classify import classify_document
+from classifier.classify import classify_document, personalize_latex_document
 from schema import DOCUMENT_SCHEMAS
-from utils.latex_writer import render_latex
+from utils.latex_writer import render_latex, populate_template, compile_latex
 from exceptions import TemplateNotFoundError, ValidationError, MissingRequiredFieldError
 
 logger = logging.getLogger(__name__)
 
 TEMPLATE_MAP = {
-    "Onboarding_Letter": "templates/onboarding_template.tex"
+    "Onboarding_Letter": "templates/onboarding_template.tex",
+    "NDA": "templates/nda_template.tex",
+    "Independent_Contractor_Agreement": "templates/ica_template.tex"
 }
 
 def get_user_inputs_interactive(doc_type: str) -> Dict[str, str]:
@@ -104,6 +106,7 @@ def generate_document(
     user_inputs: Dict[str, str],
     extracted_text: str | None = None,
     doc_type: str | None = None,
+    personalization_prompt: str | None = None,
 ) -> Tuple[str, str]:
     """
     Generate a document from a template based on extracted and classified input.
@@ -115,6 +118,7 @@ def generate_document(
             If *None*, the text is extracted from *file_path*.
         doc_type: Pre-determined document type.
             If *None*, the type is classified from the extracted text.
+        personalization_prompt: Optional string containing instructions to personalize the generated document.
         
     Returns:
         Tuple of (document_type, output_pdf_path)
@@ -152,13 +156,13 @@ def generate_document(
         output_pdf = f"output_{unique_id}.pdf"
 
         logger.info(f"Rendering LaTeX template: {template_path}")
-        # Render PDF via LaTeX
-        render_latex(
-            template_path,
-            output_tex,
-            output_pdf,
-            user_inputs
-        )
+        tex = populate_template(template_path, user_inputs)
+        
+        if personalization_prompt:
+            logger.info("Applying personalization prompt to document...")
+            tex = personalize_latex_document(tex, personalization_prompt)
+            
+        compile_latex(tex, output_tex, output_pdf)
         
         logger.info(f"Successfully generated document: {output_pdf}")
         return doc_type, output_pdf

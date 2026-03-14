@@ -14,6 +14,7 @@ ALLOWED_TYPES = (
     "MOU",
     "IP_Agreement",
     "Onboarding_Letter",
+    "Independent_Contractor_Agreement",
 )
 
 
@@ -117,3 +118,42 @@ Document:
     except Exception as e:
         logger.error(f"Error during classification: {str(e)}", exc_info=True)
         raise DocumentClassificationError(f"Failed to classify document: {str(e)}")
+
+def personalize_latex_document(tex: str, prompt: str) -> str:
+    """
+    Personalize a LaTeX document according to a user's prompt using Gemini AI.
+    
+    Args:
+        tex: The original rendered LaTeX content
+        prompt: The user's personalization instructions
+        
+    Returns:
+        The updated LaTeX content.
+    """
+    if not prompt or not prompt.strip():
+        return tex
+        
+    logger.info("Calling Gemini API to personalize the LaTeX document")
+    sys_prompt = (
+        f"You are a helpful AI assistant that specializes in editing LaTeX documents. "
+        f"The user wants to personalize a document based on the following instructions:\n\n"
+        f"INSTRUCTIONS:\n{prompt}\n\n"
+        f"Modify the provided LaTeX document text to fulfill the instructions. "
+        f"Return ONLY the valid LaTeX document. Do NOT return any markdown formatting around it "
+        f"like ```latex ... ```. Do not add explanations."
+    )
+    
+    try:
+        response = call_gemini_with_retry(client, MODEL_NAME, f"{sys_prompt}\n\nDOCUMENT:\n{tex}")
+        raw = response.text.strip()
+        
+        # Remove markdown fences if model includes them
+        if raw.startswith("```"):
+            raw = raw.split("\n", 1)[1]
+            raw = raw.rsplit("```", 1)[0]
+            
+        return raw.strip()
+    except Exception as e:
+        logger.error(f"Error during personalization: {str(e)}", exc_info=True)
+        # Fall back to original tex if error occurs
+        return tex
